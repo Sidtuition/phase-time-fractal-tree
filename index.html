@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase-Time Fractal Family Tree — RefléctOS™</title>
+<style>
+ @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&display=swap');
+
+ :root {
+   --bg: #07080f;
+   --surface: #0d0f1a;
+   --surface2: #131626;
+   --border: #1e2240;
+   --accent: #00e5ff;
+   --accent2: #ff6b35;
+   --accent3: #a855f7;
+   --text: #e8eaf6;
+   --text-dim: #5a6080;
+   --text-mid: #9aa0c0;
+   --green: #00ff9d;
+   --red: #ff3366;
+   --yellow: #ffd700;
+ }
+
+ * { margin: 0; padding: 0; box-sizing: border-box; }
+
+ body {
+   background: var(--bg);
+   color: var(--text);
+   font-family: 'Space Mono', monospace;
+   min-height: 100vh;
+   overflow-x: hidden;
+ }
+
+ /* HEADER */
+ header {
+   padding: 28px 40px 20px;
+   border-bottom: 1px solid var(--border);
+   display: flex;
+   align-items: flex-start;
+   justify-content: space-between;
+   gap: 20px;
+ }
+
+ .header-left h1 {
+   font-family: 'Syne', sans-serif;
+   font-weight: 800;
+   font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+   letter-spacing: -0.02em;
+   color: var(--accent);
+   line-height: 1.1;
+ }
+
+ .header-left .sub {
+   font-size: 0.65rem;
+   color: var(--text-dim);
+   margin-top: 5px;
+   letter-spacing: 0.1em;
+   text-transform: uppercase;
+ }
+
+ .system-tag {
+   font-size: 0.6rem;
+   color: var(--accent3);
+   border: 1px solid var(--accent3);
+   padding: 3px 8px;
+   border-radius: 2px;
+   letter-spacing: 0.08em;
+   white-space: nowrap;
+   margin-top: 4px;
+ }
+
+ /* EQUATION BAR */
+ .eq-bar {
+   background: var(--surface);
+   border-bottom: 1px solid var(--border);
+   padding: 10px 40px;
+   display: flex;
+   align-items: center;
+   gap: 30px;
+   font-size: 0.7rem;
+   color: var(--text-mid);
+   flex-wrap: wrap;
+ }
+
+ .eq-bar .eq {
+   font-family: 'Space Mono', monospace;
+   color: var(--accent);
+   font-size: 0.72rem;
+ }
+
+ .eq-bar .sep { color: var(--border); }
+
+ /* BRANCH SELECTOR */
+ .branch-nav {
+   padding: 16px 40px;
+   border-bottom: 1px solid var(--border);
+   display: flex;
+   gap: 8px;
+   flex-wrap: wrap;
+   align-items: center;
+ }
+
+ .branch-nav .nav-label {
+   font-size: 0.58rem;
+   color: var(--text-dim);
+   text-transform: uppercase;
+   letter-spacing: 0.12em;
+   margin-right: 6px;
+ }
+
+ .branch-btn {
+   background: var(--surface);
+   border: 1px solid var(--border);
+   color: var(--text-mid);
+   font-family: 'Space Mono', monospace;
+   font-size: 0.6rem;
+   padding: 6px 12px;
+   cursor: pointer;
+   transition: all 0.2s;
+   letter-spacing: 0.05em;
+   border-radius: 2px;
+ }
+
+ .branch-btn:hover {
+   border-color: var(--accent);
+   color: var(--accent);
+ }
+
+ .branch-btn.active {
+   background: var(--accent);
+   color: var(--bg);
+   border-color: var(--accent);
+   font-weight: 700;
+ }
+
+ /* MAIN LAYOUT */
+ .main {
+   display: grid;
+   grid-template-columns: 1fr 320px;
+   gap: 0;
+   height: calc(100vh - 180px);
+   min-height: 500px;
+ }
+
+ /* CANVAS AREA */
+ .canvas-wrap {
+   position: relative;
+   border-right: 1px solid var(--border);
+   overflow: hidden;
+   background: var(--bg);
+ }
+
+ canvas {
+   display: block;
+   width: 100%;
+   height: 100%;
+ }
+
+.canvas-overlay {
+   position: absolute;
+   top: 16px;
+   left: 16px;
+   pointer-events: none;
+ }
+
+ .branch-label {
+   font-family: 'Syne', sans-serif;
+   font-weight: 800;
+   font-size: 1.4rem;
+   color: var(--accent);
+   line-height: 1;
+   text-shadow: 0 0 30px rgba(0,229,255,0.4);
+ }
+
+ .branch-mechanism {
+   font-size: 0.6rem;
+   color: var(--text-dim);
+   margin-top: 4px;
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+ }
+
+ /* PHASE INDICATORS */
+ .phase-readout {
+   position: absolute;
+   bottom: 16px;
+   left: 16px;
+   pointer-events: none;
+   display: flex;
+   gap: 20px;
+   flex-wrap: wrap;
+ }
+
+ .readout-item {
+   display: flex;
+   flex-direction: column;
+   gap: 2px;
+ }
+
+ .readout-label {
+   font-size: 0.52rem;
+   color: var(--text-dim);
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+ }
+
+ .readout-value {
+   font-size: 0.75rem;
+   color: var(--accent);
+   font-weight: 700;
+ }
+
+ /* COHERENCE METER */
+ .coherence-bar-wrap {
+   position: absolute;
+   top: 16px;
+   right: 16px;
+   pointer-events: none;
+   display: flex;
+   flex-direction: column;
+   align-items: flex-end;
+   gap: 4px;
+ }
+
+ .coherence-label {
+   font-size: 0.52rem;
+   color: var(--text-dim);
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+ }
+
+ .coherence-bar {
+   width: 120px;
+   height: 6px;
+   background: var(--surface2);
+   border: 1px solid var(--border);
+   border-radius: 1px;
+   overflow: hidden;
+ }
+
+ .coherence-fill {
+   height: 100%;
+   transition: width 0.1s, background 0.3s;
+   border-radius: 1px;
+ }
+
+ .coherence-val {
+   font-size: 0.65rem;
+   color: var(--green);
+   font-weight: 700;
+ }
+
+ /* SIDEBAR */
+ .sidebar {
+   background: var(--surface);
+   overflow-y: auto;
+   display: flex;
+   flex-direction: column;
+ }
+
+ .sidebar::-webkit-scrollbar { width: 4px; }
+ .sidebar::-webkit-scrollbar-track { background: var(--bg); }
+ .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+ .sidebar-section {
+   padding: 20px;
+   border-bottom: 1px solid var(--border);
+ }
+
+ .sidebar-section:last-child { border-bottom: none; }
+
+ .sidebar-title {
+   font-size: 0.55rem;
+   color: var(--text-dim);
+   text-transform: uppercase;
+   letter-spacing: 0.12em;
+   margin-bottom: 12px;
+ }
+
+ /* BRANCH INFO */
+ .branch-name-full {
+   font-family: 'Syne', sans-serif;
+   font-weight: 800;
+   font-size: 0.9rem;
+   color: var(--text);
+   margin-bottom: 6px;
+   line-height: 1.2;
+ }
+
+ .branch-mechanism-text {
+   font-size: 0.65rem;
+   color: var(--accent2);
+   margin-bottom: 10px;
+ }
+
+ .branch-interp {
+   font-size: 0.65rem;
+   color: var(--text-mid);
+   line-height: 1.6;
+ }
+
+ /* FORMULA DISPLAY */
+ .formula-block {
+   background: var(--surface2);
+   border: 1px solid var(--border);
+   border-left: 2px solid var(--accent);
+   padding: 10px 12px;
+   margin: 10px 0;
+   border-radius: 2px;
+ }
+
+ .formula-text {
+   font-size: 0.65rem;
+   color: var(--accent);
+   line-height: 1.8;
+ }
+
+ /* PROPERTIES */
+ .prop-list {
+   list-style: none;
+   margin-top: 8px;
+ }
+
+ .prop-list li {
+   font-size: 0.62rem;
+   color: var(--text-mid);
+   padding: 3px 0;
+   border-bottom: 1px solid var(--border);
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   line-height: 1.4;
+ }
+
+ .prop-list li::before {
+   content: '→';
+   color: var(--accent);
+   font-size: 0.55rem;
+   flex-shrink: 0;
+ }
+
+ /* CONTROLS */
+ .control-row {
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+ }
+
+ .control-item {
+   display: flex;
+   flex-direction: column;
+   gap: 4px;
+ }
+
+ .control-label {
+   font-size: 0.55rem;
+   color: var(--text-dim);
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+   display: flex;
+   justify-content: space-between;
+ }
+
+ .control-label span { color: var(--accent); }
+
+ input[type="range"] {
+   width: 100%;
+   height: 3px;
+   background: var(--border);
+   border-radius: 2px;
+   outline: none;
+   -webkit-appearance: none;
+   cursor: pointer;
+ }
+
+ input[type="range"]::-webkit-slider-thumb {
+   -webkit-appearance: none;
+   width: 12px;
+   height: 12px;
+   background: var(--accent);
+   border-radius: 50%;
+   cursor: pointer;
+ }
+
+ /* BUTTONS */
+ .btn-row {
+   display: flex;
+   gap: 8px;
+   flex-wrap: wrap;
+ }
+
+ .ctrl-btn {
+   background: var(--surface2);
+   border: 1px solid var(--border);
+   color: var(--text-mid);
+   font-family: 'Space Mono', monospace;
+   font-size: 0.6rem;
+   padding: 6px 12px;
+   cursor: pointer;
+   transition: all 0.2s;
+   border-radius: 2px;
+   flex: 1;
+ }
+
+ .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+ .ctrl-btn.active { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+
+ /* FAILURE MODE INDICATOR */
+ .failure-indicator {
+   padding: 10px 12px;
+   border-radius: 2px;
+   font-size: 0.62rem;
+   line-height: 1.5;
+   border: 1px solid var(--border);
+   transition: all 0.3s;
+ }
+
+ .failure-indicator.ok {
+   background: rgba(0,255,157,0.05);
+   border-color: rgba(0,255,157,0.2);
+   color: var(--green);
+ }
+
+ .failure-indicator.warn {
+   background: rgba(255,215,0,0.05);
+   border-color: rgba(255,215,0,0.3);
+   color: var(--yellow);
+ }
+
+ .failure-indicator.fail {
+   background: rgba(255,51,102,0.05);
+   border-color: rgba(255,51,102,0.3);
+   color: var(--red);
+ }
+
+ /* FAMILY TREE MINI */
+ .tree-mini {
+   display: flex;
+   flex-direction: column;
+   gap: 3px;
+ }
+
+ .tree-node {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   padding: 4px 6px;
+   border-radius: 2px;
+   cursor: pointer;
+   transition: background 0.15s;
+   font-size: 0.6rem;
+   color: var(--text-dim);
+ }
+
+ .tree-node:hover { background: var(--surface2); color: var(--text-mid); }
+ .tree-node.active { background: rgba(0,229,255,0.08); color: var(--accent); }
+
+.tree-node .node-num {
+   font-weight: 700;
+   font-size: 0.55rem;
+   width: 14px;
+   text-align: right;
+ }
+
+ .tree-dot {
+   width: 6px;
+   height: 6px;
+   border-radius: 50%;
+   flex-shrink: 0;
+ }
+
+ /* RESPONSIVE */
+ @media (max-width: 700px) {
+   .main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+   .sidebar { max-height: 280px; }
+   header { padding: 16px 20px; }
+   .branch-nav { padding: 12px 20px; }
+   .eq-bar { padding: 8px 20px; }
+ }
+</style>
+</head>
+<body>
+
+<header>
+ <div class="header-left">
+   <h1>Phase-Time Fractal Family Tree</h1>
+   <div class="sub">Taxonomy of Recursive Systems with Phase-Dependent Rule Evolution</div>
+   <div class="system-tag">RefléctOS™ · S.J. Hibberd</div>
+ </div>
+</header>
+
+<div class="eq-bar">
+ <span>ROOT STRUCTURE:</span>
+ <span class="eq">S_{n+1} = F(S_n, φ_n)</span>
+ <span class="sep">|</span>
+ <span class="eq">φ_{n+1} = G(φ_n, S_n)</span>
+ <span class="sep">|</span>
+ <span style="color:var(--text-dim)">Seven branches. One root. Behavior determined by G.</span>
+</div>
+
+<div class="branch-nav">
+ <span class="nav-label">Branch:</span>
+ <button class="branch-btn active" data-branch="0">I · Parameter</button>
+ <button class="branch-btn" data-branch="1">II · Rule-Switch</button>
+ <button class="branch-btn" data-branch="2">III · Continuous</button>
+ <button class="branch-btn" data-branch="3">IV · Feedback</button>
+ <button class="branch-btn" data-branch="4">V · Multi-Scale</button>
+ <button class="branch-btn" data-branch="5">VI · Spatial</button>
+ <button class="branch-btn" data-branch="6">VII · Hybrid</button>
+</div>
+
+<div class="main">
+ <div class="canvas-wrap">
+   <canvas id="mainCanvas"></canvas>
+
+   <div class="canvas-overlay">
+     <div class="branch-label" id="overlayBranchLabel">Branch I</div>
+     <div class="branch-mechanism" id="overlayMechanism">Phase modifies parameters</div>
+   </div>
+
+   <div class="coherence-bar-wrap">
+     <div class="coherence-label">Coherence</div>
+     <div class="coherence-bar">
+       <div class="coherence-fill" id="coherenceFill" style="width:100%; background: var(--green);"></div>
+     </div>
+     <div class="coherence-val" id="coherenceVal">1.00</div>
+   </div>
+
+   <div class="phase-readout">
+     <div class="readout-item">
+       <div class="readout-label">φ_n (phase)</div>
+       <div class="readout-value" id="readPhase">0.000</div>
+     </div>
+     <div class="readout-item">
+       <div class="readout-label">iteration</div>
+       <div class="readout-value" id="readIter">0</div>
+     </div>
+     <div class="readout-item">
+       <div class="readout-label">active rule</div>
+       <div class="readout-value" id="readRule">F₁</div>
+     </div>
+     <div class="readout-item">
+       <div class="readout-label">ω (rate)</div>
+       <div class="readout-value" id="readOmega">0.050</div>
+     </div>
+   </div>
+ </div>
+
+ <div class="sidebar">
+   <!-- Branch Info -->
+   <div class="sidebar-section">
+     <div class="sidebar-title">Active Branch</div>
+     <div class="branch-name-full" id="sidebarBranchName">I — Parameter Phase Fractals</div>
+     <div class="branch-mechanism-text" id="sidebarMechanism">Phase modifies system parameters</div>
+     <div class="formula-block">
+       <div class="formula-text" id="sidebarFormula">z_{n+1} = z_n² + c(t)<br>c(t) evolves via G</div>
+     </div>
+     <div class="branch-interp" id="sidebarInterp">Phase = position in parameter space. System traverses Mandelbrot space over time.</div>
+     <ul class="prop-list" id="sidebarProps"></ul>
+   </div>
+
+   <!-- System State -->
+   <div class="sidebar-section">
+     <div class="sidebar-title">System State</div>
+     <div class="failure-indicator ok" id="failureIndicator">● COHERENT — Phase-rule alignment maintained</div>
+   </div>
+
+   <!-- Controls -->
+   <div class="sidebar-section">
+     <div class="sidebar-title">Controls</div>
+     <div class="control-row">
+       <div class="control-item">
+         <div class="control-label">Phase Rate (ω) <span id="omegaDisplay">0.05</span></div>
+         <input type="range" id="omegaSlider" min="0.005" max="0.3" step="0.005" value="0.05">
+       </div>
+       <div class="control-item">
+         <div class="control-label">Desync Noise <span id="noiseDisplay">0.00</span></div>
+         <input type="range" id="noiseSlider" min="0" max="1" step="0.01" value="0">
+       </div>
+       <div class="control-item">
+         <div class="control-label">Point Density <span id="densityDisplay">4000</span></div>
+         <input type="range" id="densitySlider" min="500" max="8000" step="500" value="4000">
+       </div>
+     </div>
+     <div class="btn-row" style="margin-top:12px;">
+       <button class="ctrl-btn" id="pauseBtn">⏸ Pause</button>
+       <button class="ctrl-btn" id="resetBtn">↺ Reset</button>
+       <button class="ctrl-btn" id="desynBtn">⚡ Desync</button>
+     </div>
+   </div>
+
+   <!-- Family Tree Nav -->
+   <div class="sidebar-section">
+     <div class="sidebar-title">Family Tree</div>
+     <div class="tree-mini" id="treeMini"></div>
+   </div>
+ </div>
+</div>
+
+<script>
+// ─── BRANCH DATA ───────────────────────────────────────────────────────────────
+const BRANCHES = [
+ {
+   id: 0,
+   num: 'I',
+   name: 'Parameter Phase Fractals',
+   mechanism: 'Phase modifies system parameters',
+   interp: 'Phase = position in parameter space. System traverses Mandelbrot space, generating a different Julia set at each moment. Structure shifts smoothly.',
+   formula: 'z_{n+1} = z_n² + c(t)\nc_{n+1} = G(c_n, S_n)',
+   props: ['Smooth parameter variation', 'Traversal through Mandelbrot space', 'Generates evolving Julia-like structures', 'No sharp discontinuities', 'Coherence = smooth G transition'],
+   color: '#00e5ff',
+   render: renderBranchI
+ },
+ {
+   id: 1,
+   num: 'II',
+   name: 'Rule-Switching Phase Fractals (T-IFS)',
+   mechanism: 'Phase selects between discrete rules',
+   interp: 'Phase = rule selector. The system switches between distinct transformation rules F₁…Fₖ based on phase. This is the T-IFS branch. Desync collapse is the critical failure mode.',
+   formula: 'i = S(x_n, φ_n)\nx_{n+1} = F_i(x_n, φ_n)\nφ_{n+1} = φ_n + ω mod 2π',
+   props: ['Discrete regime shifts', 'Structural discontinuities at rule boundary', 'Multi-behavior system', 'Phase-coherent selection = stability', 'Desync collapse = primary failure mode'],
+   color: '#ff6b35',
+   render: renderBranchII
+ },
+ {
+   id: 2,
+   num: 'III',
+   name: 'Continuous Modulation Fractals',
+   mechanism: 'Phase continuously alters rule coefficients',
+   interp: 'Phase = continuous control parameter. Coefficients morph fluidly. No discrete jumps — only smooth deformation. Failure through gradual coherence degradation.',
+   formula: 'F(z, φ) = z² + a(φ)z + b(φ)\na(φ), b(φ) = smooth functions',
+   props: ['Smooth rule deformation', 'No structural discontinuities', 'Transitional morphing behavior', 'Coherence degradation as failure', 'Sensitive to coefficient drift'],
+   color: '#a855f7',
+   render: renderBranchIII
+ },
+ {
+   id: 3,
+   num: 'IV',
+   name: 'Feedback-Coupled Phase Fractals',
+   mechanism: 'Phase evolves based on system output',
+   interp: 'Phase = emergent internal state. The system modifies its own phase based on what it generates. Self-regulating. Can produce oscillation, adaptation, or chaos.',
+   formula: 'φ_{n+1} = G(S_n)\nS_{n+1} = F(S_n, φ_n)',
+   props: ['Adaptive behavior', 'Oscillation or chaos possible', 'Self-regulating dynamics', 'Phase lag instability as failure', 'Most biologically realistic branch'],
+   color: '#00ff9d',
+   render: renderBranchIV
+ },
+ {
+   id: 4,
+   num: 'V',
+   name: 'Multi-Scale Phase Fractals',
+   mechanism: 'Different scales operate under different phases',
+   interp: 'Phase = function of scale. Macro and micro levels have distinct phase relationships. Structure translates across scale rather than replicating. Cross-scale coherence required.',
+   formula: 'φ_scale = φ(scale)\nS_{n+1} = F(S_n, φ_scale)',
+   props: ['Cross-scale regime shifts', 'Structural translation not replication', 'Layered system dynamics', 'Scale-dependent coherence', 'Multi-resolution behavior'],
+   color: '#ffd700',
+   render: renderBranchV
+ },
+ {
+   id: 5,
+   num: 'VI',
+   name: 'Spatial Phase Fractals',
+   mechanism: 'Phase varies across spatial domain',
+   interp: 'Phase = spatial field φ(x,y). Different regions operate under different phase conditions simultaneously. Boundary interactions between regions create emergent structure.',
+   formula: 'φ = φ(x, y)\nS_{n+1}(x,y) = F(S_n, φ(x,y))',
+   props: ['Region-dependent behavior', 'Boundary interactions', 'Patchwork phase structure', 'Spatial coherence required', 'Phase boundaries = structure generators'],
+   color: '#ff3366',
+   render: renderBranchVI
+ },
+ {
+   id: 6,
+   num: 'VII',
+   name: 'Hybrid Phase Fractals',
+   mechanism: 'Multiple phase systems combined',
+   interp: 'Phase = multi-variable dynamic field. Time + space + feedback all coupled. Highest complexity, highest-dimensional behavior. All prior failure modes possible simultaneously.',
+   formula: 'φ = φ(t, x, S_n)\nS_{n+1} = F(S_n, φ(t,x,S_n))',
+   props: ['Time + space + feedback coupling', 'Complex emergent behavior', 'High-dimensional phase field', 'All failure modes possible', 'Maximum expressivity and fragility'],
+   color: '#e040fb',
+   render: renderBranchVII
+ }
+];
+
+// ─── STATE ─────────────────────────────────────────────────────────────────────
+let activeBranch = 0;
+let phase = 0;
+let iteration = 0;
+let paused = false;
+let desyncActive = false;
+let desyncNoise = 0;
+let omega = 0.05;
+let density = 4000;
+let coherence = 1.0;
+let animFrame = null;
+let points = [];
+let trailPoints = [];
+
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+
+// ─── RESIZE ────────────────────────────────────────────────────────────────────
+function resizeCanvas() {
+ const wrap = canvas.parentElement;
+ canvas.width = wrap.clientWidth;
+ canvas.height = wrap.clientHeight;
+}
+
+window.addEventListener('resize', () => { resizeCanvas(); resetSim(); });
+resizeCanvas();
+
+// ─── BRANCH RENDERERS ──────────────────────────────────────────────────────────
+// Each renderer draws to canvas for the current phase φ
+// Returns {coherence, activeRule}
+
+function renderBranchI(ctx, W, H, phi, noise, iter) {
+ // Parameter Phase Fractal: c(t) traces path through Mandelbrot neighborhood
+ const cx = W / 2, cy = H / 2;
+ const scale = Math.min(W, H) * 0.35;
+
+ // c evolves smoothly
+ const cr = -0.75 + 0.4 * Math.cos(phi) + noise * (Math.random() - 0.5) * 0.3;
+ const ci = 0.1 + 0.4 * Math.sin(phi * 0.7) + noise * (Math.random() - 0.5) * 0.3;
+
+ ctx.clearRect(0, 0, W, H);
+
+ // Draw phase trail
+ trailPoints.push({x: cx + cr * scale * 0.5, y: cy + ci * scale * 0.5, phi});
+ if (trailPoints.length > 200) trailPoints.shift();
+
+ // Background
+ ctx.fillStyle = '#07080f';
+ ctx.fillRect(0, 0, W, H);
+
+ // Draw Julia-like orbit using escape-time coloring (fast approx)
+ const pts = Math.min(density, 3000);
+ for (let i = 0; i < pts; i++) {
+   let zr = (Math.random() * 2 - 1) * 2;
+   let zi = (Math.random() * 2 - 1) * 2;
+   let escaped = false;
+   let steps = 0;
+   const maxIter = 40;
+   while (steps < maxIter && zr * zr + zi * zi < 4) {
+     const tmp = zr * zr - zi * zi + cr;
+     zi = 2 * zr * zi + ci;
+     zr = tmp;
+     steps++;
+   }
+   if (steps === maxIter) {
+     const px = cx + zr * scale * 0.5;
+     const py = cy + zi * scale * 0.5;
+     const alpha = 0.15 + 0.1 * Math.sin(phi + steps * 0.1);
+     ctx.fillStyle = `rgba(0,229,255,${alpha})`;
+     ctx.fillRect(px, py, 1.5, 1.5);
+   }
+ }
+
+// Draw c(t) path
+ ctx.strokeStyle = 'rgba(0,229,255,0.3)';
+ ctx.lineWidth = 1;
+ ctx.beginPath();
+ trailPoints.forEach((p, i) => {
+   if (i === 0) ctx.moveTo(p.x, p.y);
+   else ctx.lineTo(p.x, p.y);
+ });
+ ctx.stroke();
+
+ // Current c point
+ const cpx = cx + cr * scale * 0.5;
+ const cpy = cy + ci * scale * 0.5;
+ ctx.beginPath();
+ ctx.arc(cpx, cpy, 5, 0, Math.PI * 2);
+ ctx.fillStyle = '#00e5ff';
+ ctx.fill();
+
+ const coh = Math.max(0, 1 - noise * 0.8);
+ return { coherence: coh, activeRule: 'c(t)' };
+}
+
+function renderBranchII(ctx, W, H, phi, noise, iter) {
+ // T-IFS: Rule-switching based on phase
+ const cx = W / 2, cy = H / 2;
+ ctx.fillStyle = '#07080f';
+ ctx.fillRect(0, 0, W, H);
+
+ // 3 transformation rules (affine IFS)
+ const rules = [
+   { a: 0.0,  b: 0.0,  c: 0.0,  d: 0.16, e: 0,    f: 0,    p: 0.01 },
+   { a: 0.85, b: 0.04, c: -0.04,d: 0.85, e: 0,    f: 1.6,  p: 0.85 },
+   { a: 0.2,  b: -0.26,c: 0.23, d: 0.22, e: 0,    f: 1.6,  p: 0.07 },
+   { a: -0.15,b: 0.28, c: 0.26, d: 0.24, e: 0,    f: 0.44, p: 0.07 }
+ ];
+
+ // Phase selects rule weight modulation
+ const phaseShift = noise * (Math.random() - 0.5) * Math.PI;
+ const effectivePhi = phi + phaseShift;
+
+ // Coherent phase selection: rule probabilities modulated by phase
+ const phaseMod = [
+   0.01,
+   0.85 + 0.1 * Math.sin(effectivePhi),
+   0.07 + 0.05 * Math.cos(effectivePhi * 2),
+   0.07 + 0.05 * Math.sin(effectivePhi * 3)
+ ];
+ const totalP = phaseMod.reduce((a, b) => a + b, 0);
+
+ // Generate points
+ let x = 0, y = 0;
+ const scale = Math.min(W, H) * 0.07;
+ const pts = Math.min(density, 6000);
+ let activeRuleIdx = 1;
+
+ for (let i = 0; i < pts; i++) {
+   // Select rule by phase-modulated probability
+   let r = Math.random() * totalP;
+   let rIdx = 0;
+   for (let j = 0; j < phaseMod.length; j++) {
+     r -= phaseMod[j];
+     if (r <= 0) { rIdx = j; break; }
+   }
+   activeRuleIdx = rIdx;
+
+   const rule = rules[rIdx];
+   const nx = rule.a * x + rule.b * y + rule.e;
+   const ny = rule.c * x + rule.d * y + rule.f;
+   x = nx; y = ny;
+
+   if (i > 20) {
+     const px = cx + x * scale;
+     const py = cy - y * scale + H * 0.1;
+     const alpha = noise > 0.3 ? 0.05 + Math.random() * 0.15 : 0.25;
+     // Color by rule
+     const colors = ['rgba(255,107,53,', 'rgba(0,229,255,', 'rgba(168,85,247,', 'rgba(255,215,0,'];
+     ctx.fillStyle = colors[rIdx] + alpha + ')';
+     ctx.fillRect(px, py, 1.5, 1.5);
+   }
+ }
+
+ // Phase ring indicator
+ const ringR = 40;
+ const ringX = W - 60, ringY = H - 60;
+ ctx.strokeStyle = 'rgba(255,107,53,0.2)';
+ ctx.lineWidth = 1;
+ ctx.beginPath();
+ ctx.arc(ringX, ringY, ringR, 0, Math.PI * 2);
+ ctx.stroke();
+
+ // Phase position on ring
+ ctx.beginPath();
+ ctx.arc(ringX + Math.cos(phi) * ringR, ringY + Math.sin(phi) * ringR, 5, 0, Math.PI * 2);
+ ctx.fillStyle = '#ff6b35';
+ ctx.fill();
+
+ // Rule boundary lines
+ const boundaries = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
+ boundaries.forEach(b => {
+   ctx.strokeStyle = 'rgba(255,107,53,0.15)';
+   ctx.beginPath();
+   ctx.moveTo(ringX, ringY);
+   ctx.lineTo(ringX + Math.cos(b) * ringR, ringY + Math.sin(b) * ringR);
+   ctx.stroke();
+ });
+
+ const coh = Math.max(0, 1 - noise * 1.2);
+ const ruleNames = ['F₀', 'F₁', 'F₂', 'F₃'];
+ return { coherence: coh, activeRule: ruleNames[activeRuleIdx] };
+}
+
+function renderBranchIII(ctx, W, H, phi, noise, iter) {
+ // Continuous modulation: coefficients morph smoothly
+ const cx = W / 2, cy = H / 2;
+ ctx.fillStyle = 'rgba(7,8,15,0.15)';
+ ctx.fillRect(0, 0, W, H);
+
+ const a = Math.sin(phi) * (1 + noise * 0.3);
+ const b = Math.cos(phi * 0.7) * (1 + noise * 0.3);
+ const scale = Math.min(W, H) * 0.35;
+
+ const pts = Math.min(density, 5000);
+ for (let i = 0; i < pts; i++) {
+   // Lorenz-like projection with smooth phase modulation
+   const t = (i / pts) * Math.PI * 20 + phi;
+   const x = Math.sin(t * (1 + a * 0.1)) * Math.cos(t * 0.3 * b);
+   const y = Math.sin(t * 0.7) * Math.sin(t * (0.5 + b * 0.1));
+   const z = Math.cos(t * (0.3 + a * 0.05));
+
+   const px = cx + (x - z * 0.3) * scale;
+   const py = cy + (y + z * 0.2) * scale * 0.6;
+
+   const alpha = 0.08 + 0.05 * Math.abs(z);
+   const hue = (phi * 30 + i * 0.02) % 360;
+   ctx.fillStyle = `hsla(${hue + 260},70%,70%,${alpha})`;
+   ctx.fillRect(px, py, 1.5, 1.5);
+ }
+
+ const coh = Math.max(0, 1 - noise * 0.6);
+ return { coherence: coh, activeRule: 'a(φ),b(φ)' };
+}
+
+function renderBranchIV(ctx, W, H, phi, noise, iter) {
+ // Feedback-coupled: phase evolves from system output
+ const cx = W / 2, cy = H / 2;
+ ctx.fillStyle = 'rgba(7,8,15,0.1)';
+ ctx.fillRect(0, 0, W, H);
+
+ const scale = Math.min(W, H) * 0.3;
+ const pts = Math.min(density, 4000);
+
+ // Feedback modifies phi dynamically
+ let px = 0.1, py = 0.1;
+ for (let i = 0; i < pts; i++) {
+   // State feeds back into phase
+   const feedbackPhi = phi + px * 0.5 + noise * (Math.random() - 0.5) * 2;
+   const nx = py + Math.sin(feedbackPhi) * (1 - 0.7 * px);
+   const ny = -0.9 * px + Math.cos(feedbackPhi * 0.6) * py;
+   px = nx * 0.95; py = ny * 0.95;
+
+   const screenX = cx + px * scale;
+   const screenY = cy + py * scale;
+   const alpha = 0.12 + 0.08 * Math.abs(px);
+   ctx.fillStyle = `rgba(0,255,157,${alpha})`;
+   ctx.fillRect(screenX, screenY, 1.5, 1.5);
+ }
+
+ // Feedback oscillation indicator
+ const oscX = 40, oscY = H - 60;
+ const oscW = 120, oscH = 30;
+ ctx.strokeStyle = 'rgba(0,255,157,0.2)';
+ ctx.strokeRect(oscX, oscY - oscH, oscW, oscH * 2);
+
+ // Draw feedback waveform
+ ctx.strokeStyle = 'rgba(0,255,157,0.6)';
+ ctx.lineWidth = 1.5;
+ ctx.beginPath();
+ for (let i = 0; i < oscW; i++) {
+   const t = (i / oscW) * Math.PI * 4;
+   const v = Math.sin(t + phi) * Math.cos(t * 0.7 + phi * 0.3);
+   const wy = oscY + v * oscH * (0.7 + noise * 0.5);
+   if (i === 0) ctx.moveTo(oscX + i, wy);
+   else ctx.lineTo(oscX + i, wy);
+ }
+ ctx.stroke();
+
+ const coh = Math.max(0, 1 - noise * 0.9 - (noise > 0.5 ? Math.sin(iter * 0.1) * 0.2 : 0));
+ return { coherence: coh, activeRule: 'G(S_n)→φ' };
+}
+
+function renderBranchV(ctx, W, H, phi, noise, iter) {
+ // Multi-scale: different scales have different phases
+ ctx.fillStyle = '#07080f';
+ ctx.fillRect(0, 0, W, H);
+
+ const cx = W / 2, cy = H / 2;
+ const scales = [1, 0.5, 0.25, 0.125, 0.0625];
+ const phaseOffsets = [0, Math.PI * 0.4, Math.PI * 0.8, Math.PI * 1.2, Math.PI * 1.6];
+
+ scales.forEach((s, si) => {
+   const scalePhi = phi + phaseOffsets[si] + noise * (Math.random() - 0.5) * 0.5;
+   const scaleR = Math.min(W, H) * 0.4 * s;
+   const pts = Math.floor(density * s * 0.5);
+   const alpha = 0.3 * s + 0.1;
+
+   for (let i = 0; i < pts; i++) {
+     const t = (i / pts) * Math.PI * 2;
+     const r = scaleR * (0.7 + 0.3 * Math.sin(t * 3 + scalePhi));
+     const x = cx + r * Math.cos(t + scalePhi * 0.1);
+     const y = cy + r * Math.sin(t + scalePhi * 0.1) * 0.6;
+
+     const hue = 45 + si * 15;
+     ctx.fillStyle = `hsla(${hue},90%,65%,${alpha})`;
+     ctx.fillRect(x, y, 2, 2);
+   }
+ });
+
+const coh = Math.max(0, 1 - noise * 0.7);
+ return { coherence: coh, activeRule: 'φ(scale)' };
+}
+
+function renderBranchVI(ctx, W, H, phi, noise, iter) {
+ // Spatial phase: φ varies by position
+ ctx.fillStyle = '#07080f';
+ ctx.fillRect(0, 0, W, H);
+
+ const res = 4;
+ const cols = Math.floor(W / res);
+ const rows = Math.floor(H / res);
+
+ for (let row = 0; row < rows; row++) {
+   for (let col = 0; col < cols; col++) {
+     const nx = col / cols - 0.5;
+     const ny = row / rows - 0.5;
+
+     // Phase = spatial field
+     const spatialPhi = phi + nx * Math.PI * 2 + ny * Math.PI * 1.5;
+     const noiseField = noise * (Math.sin(nx * 10 + phi) * Math.cos(ny * 8 + phi * 0.7));
+
+     // Evaluate F at this spatial phase
+     let z = Math.sin(spatialPhi + noiseField) * Math.cos(spatialPhi * 0.7);
+     const r = Math.abs(Math.sin(spatialPhi * 2 + noiseField));
+
+     if (r > 0.3 && r < 0.7) {
+       const alpha = (r - 0.3) * 2 * 0.4;
+       const hue = (spatialPhi * 30) % 360;
+       ctx.fillStyle = `hsla(${hue + 320},80%,60%,${alpha})`;
+       ctx.fillRect(col * res, row * res, res, res);
+     }
+   }
+ }
+
+ const coh = Math.max(0, 1 - noise * 0.85);
+ return { coherence: coh, activeRule: 'φ(x,y)' };
+}
+
+function renderBranchVII(ctx, W, H, phi, noise, iter) {
+ // Hybrid: all modes combined
+ ctx.fillStyle = 'rgba(7,8,15,0.08)';
+ ctx.fillRect(0, 0, W, H);
+
+ const cx = W / 2, cy = H / 2;
+ const scale = Math.min(W, H) * 0.35;
+ const pts = Math.min(density, 5000);
+
+ // Time component
+ const timePhi = phi;
+ // Spatial component
+ const spatialOffset = Math.sin(phi * 0.3);
+ // Feedback component
+ const feedbackGain = 0.3 + 0.2 * Math.cos(phi * 0.7);
+
+ for (let i = 0; i < pts; i++) {
+   const t = (i / pts) * Math.PI * 6 + timePhi;
+   const spatX = Math.sin(t + spatialOffset) + noise * (Math.random() - 0.5) * 0.5;
+   const spatY = Math.cos(t * 0.618 + spatialOffset * 0.7) + noise * (Math.random() - 0.5) * 0.5;
+   const fb = feedbackGain * Math.sin(spatX * spatY * 3 + timePhi);
+
+   const x = spatX + fb * 0.3;
+   const y = spatY * (1 + fb * 0.2);
+
+   const px = cx + x * scale * 0.5;
+   const py = cy + y * scale * 0.5;
+
+   const hue = (timePhi * 20 + i * 0.05) % 360;
+   const alpha = 0.06 + Math.abs(fb) * 0.08;
+   ctx.fillStyle = `hsla(${hue + 280},80%,70%,${alpha})`;
+   ctx.fillRect(px, py, 1.5, 1.5);
+ }
+
+ const coh = Math.max(0, 1 - noise * 1.1);
+ return { coherence: coh, activeRule: 'φ(t,x,S)' };
+}
+
+// ─── UI UPDATES ────────────────────────────────────────────────────────────────
+function updateBranchUI(branchId) {
+ const b = BRANCHES[branchId];
+
+ document.getElementById('overlayBranchLabel').textContent = `Branch ${b.num}`;
+ document.getElementById('overlayBranchLabel').style.color = b.color;
+ document.getElementById('overlayMechanism').textContent = b.mechanism;
+
+ document.getElementById('sidebarBranchName').textContent = `${b.num} — ${b.name}`;
+ document.getElementById('sidebarMechanism').textContent = b.mechanism;
+ document.getElementById('sidebarFormula').innerHTML = b.formula.replace(/\n/g, '<br>');
+ document.getElementById('sidebarInterp').textContent = b.interp;
+
+ const propList = document.getElementById('sidebarProps');
+ propList.innerHTML = '';
+ b.props.forEach(p => {
+   const li = document.createElement('li');
+   li.textContent = p;
+   propList.appendChild(li);
+ });
+
+// Update tree
+ document.querySelectorAll('.tree-node').forEach(n => {
+   n.classList.toggle('active', parseInt(n.dataset.branch) === branchId);
+ });
+
+ document.querySelectorAll('.branch-btn').forEach(btn => {
+   btn.classList.toggle('active', parseInt(btn.dataset.branch) === branchId);
+ });
+}
+
+function buildTreeMini() {
+ const tree = document.getElementById('treeMini');
+ BRANCHES.forEach(b => {
+   const node = document.createElement('div');
+   node.className = 'tree-node' + (b.id === 0 ? ' active' : '');
+   node.dataset.branch = b.id;
+   node.innerHTML = `
+     <span class="node-num">${b.num}</span>
+     <div class="tree-dot" style="background:${b.color}"></div>
+     <span>${b.name}</span>
+   `;
+   node.addEventListener('click', () => switchBranch(b.id));
+   tree.appendChild(node);
+ });
+}
+
+function updateReadouts(phi, iter, rule, coh) {
+ document.getElementById('readPhase').textContent = phi.toFixed(3);
+ document.getElementById('readIter').textContent = iter;
+ document.getElementById('readRule').textContent = rule;
+ document.getElementById('readOmega').textContent = omega.toFixed(3);
+
+ const fill = document.getElementById('coherenceFill');
+ const val = document.getElementById('coherenceVal');
+ const pct = (coh * 100).toFixed(0);
+ fill.style.width = pct + '%';
+ val.textContent = coh.toFixed(2);
+
+ if (coh > 0.7) {
+   fill.style.background = '#00ff9d';
+   val.style.color = '#00ff9d';
+ } else if (coh > 0.35) {
+   fill.style.background = '#ffd700';
+   val.style.color = '#ffd700';
+ } else {
+   fill.style.background = '#ff3366';
+   val.style.color = '#ff3366';
+ }
+
+ const ind = document.getElementById('failureIndicator');
+ if (coh > 0.7) {
+   ind.className = 'failure-indicator ok';
+   ind.textContent = '● COHERENT — Phase-rule alignment maintained';
+ } else if (coh > 0.35) {
+   ind.className = 'failure-indicator warn';
+   ind.textContent = '⚠ DEGRADING — Coherence loss detected';
+ } else {
+   ind.className = 'failure-indicator fail';
+   ind.textContent = '✖ DESYNC COLLAPSE — Phase-rule alignment lost';
+ }
+}
+
+// ─── BRANCH SWITCHING ──────────────────────────────────────────────────────────
+function switchBranch(id) {
+ activeBranch = id;
+ phase = 0;
+ iteration = 0;
+ trailPoints = [];
+ points = [];
+ desyncActive = false;
+ document.getElementById('noiseSlider').value = 0;
+ document.getElementById('noiseDisplay').textContent = '0.00';
+ desyncNoise = 0;
+ document.getElementById('desynBtn').classList.remove('active');
+ updateBranchUI(id);
+}
+
+// ─── RESET ─────────────────────────────────────────────────────────────────────
+function resetSim() {
+ phase = 0;
+ iteration = 0;
+ trailPoints = [];
+ points = [];
+ desyncActive = false;
+ desyncNoise = 0;
+ document.getElementById('noiseSlider').value = 0;
+ document.getElementById('noiseDisplay').textContent = '0.00';
+ document.getElementById('desynBtn').classList.remove('active');
+}
+
+// ─── ANIMATION LOOP ────────────────────────────────────────────────────────────
+function tick() {
+ if (!paused) {
+   const W = canvas.width, H = canvas.height;
+   const b = BRANCHES[activeBranch];
+   const totalNoise = desyncNoise + parseFloat(document.getElementById('noiseSlider').value);
+   const clampedNoise = Math.min(1, totalNoise);
+
+   const result = b.render(ctx, W, H, phase, clampedNoise, iteration);
+
+   coherence = result.coherence;
+   updateReadouts(phase, iteration, result.activeRule, coherence);
+
+   phase = (phase + omega) % (Math.PI * 2);
+   iteration++;
+ }
+
+ animFrame = requestAnimationFrame(tick);
+}
+
+// ─── EVENT LISTENERS ───────────────────────────────────────────────────────────
+document.querySelectorAll('.branch-btn').forEach(btn => {
+ btn.addEventListener('click', () => switchBranch(parseInt(btn.dataset.branch)));
+});
+
+document.getElementById('pauseBtn').addEventListener('click', function() {
+ paused = !paused;
+ this.textContent = paused ? '▶ Resume' : '⏸ Pause';
+ this.classList.toggle('active', paused);
+});
+
+document.getElementById('resetBtn').addEventListener('click', resetSim);
+
+document.getElementById('desynBtn').addEventListener('click', function() {
+ desyncActive = !desyncActive;
+ desyncNoise = desyncActive ? 0.7 : 0;
+ this.classList.toggle('active', desyncActive);
+ this.textContent = desyncActive ? '● Desynced' : '⚡ Desync';
+});
+
+document.getElementById('omegaSlider').addEventListener('input', function() {
+ omega = parseFloat(this.value);
+ document.getElementById('omegaDisplay').textContent = omega.toFixed(3);
+ document.getElementById('readOmega').textContent = omega.toFixed(3);
+});
+
+document.getElementById('noiseSlider').addEventListener('input', function() {
+ const v = parseFloat(this.value);
+ document.getElementById('noiseDisplay').textContent = v.toFixed(2);
+});
+
+document.getElementById('densitySlider').addEventListener('input', function() {
+ density = parseInt(this.value);
+ document.getElementById('densityDisplay').textContent = density;
+});
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+buildTreeMini();
+updateBranchUI(0);
+tick();
+</script>
+</body>
+</html>
